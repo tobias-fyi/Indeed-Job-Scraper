@@ -5,22 +5,34 @@ from multiprocessing import Pool
 from functools import partial
 
 
-class scrape:
+# Scraping parameters
+parameters = {
+    "search_query": "data science",
+    "location": "Denver, CO",
+    "miles": 50,
+    "ordered_keywords": "",
+    "exclude_keywords": "",
+    "title_keywords": "",
+    "pages": 9,
+}
+
+
+class Scrape:
     def __init__(self):
         self.output_frame = None
         self.loading = False
 
     # Create base Indeed URL for all further scraping
-    def create_url(parameters):
+    def create_url(self, parameters):
         # create base url for all further searches
-        what = parameters["search_query"].replace(" ", "+")
-        where = parameters["location"].replace(" ", "+")
+        what = parameters["search_query"]
+        where = parameters["location"]
         miles = parameters["miles"]
-        base_url = f"https://www.indeed.co.uk/jobs?q={what}&l={where}&radius={miles}"
+        base_url = f"https://www.indeed.com/jobs?q={what}&l={where}"
         return base_url
 
     # Rate job based on parameters given
-    def rate_job(j_title, j_soup, parameters):
+    def rate_job(self, j_title, j_soup, parameters):
         # rate job by keywords
         description = j_soup.find(id="jobDescriptionText").get_text()
         keywords = parameters["ordered_keywords"]
@@ -55,15 +67,13 @@ class scrape:
         return description, rating, keywords_present, title_keywords_present
 
     # Obtain details of the job (company, title, description etc.)
-    def get_job_details(job, parameters):
+    def get_job_details(self, job, parameters):
         # Get link and title
         job_url = job.find(class_="title").a["href"]
 
         # Correct for truncated URLs
         job_url = (
-            "https://www.indeed.co.uk" + job_url
-            if (job_url.startswith("/"))
-            else job_url
+            "https://www.indeed.com" + job_url if (job_url.startswith("/")) else job_url
         )
         job_page = requests.get(job_url)
         job_soup = BeautifulSoup(job_page.content, "html.parser")
@@ -76,7 +86,7 @@ class scrape:
         company = job_soup.find(class_="icl-u-lg-mr--sm").get_text()
 
         # Get description, rating and present keywords
-        description, rating, keywords_present, title_keywords_present = scrape.rate_job(
+        description, rating, keywords_present, title_keywords_present = self.rate_job(
             title, job_soup, parameters
         )
 
@@ -91,7 +101,7 @@ class scrape:
         )
 
     # Parallel version of old scraping routine. Run through MapPool using Multiprocessing library
-    def parallel_scrape(parameters, url, page_num):
+    def parallel_scrape(self, parameters, url, page_num):
 
         # get page
         current_page = requests.get(url, timeout=5)
@@ -109,7 +119,7 @@ class scrape:
                 rating,
                 keywords_present,
                 title_keywords_present,
-            ) = scrape.get_job_details(job, parameters)
+            ) = self.get_job_details(job, parameters)
 
             page_output.append(
                 [
@@ -133,7 +143,7 @@ class scrape:
         self.loading = True
 
         # Create base url for all further searches
-        base_url = scrape.create_url(parameters)
+        base_url = self.create_url(parameters)
 
         # Output list and frame
         output = []
@@ -150,7 +160,7 @@ class scrape:
         ]
 
         # Get output of pool workers
-        output = pool.starmap(partial(scrape.parallel_scrape, parameters), pool_args)
+        output = pool.starmap(partial(self.parallel_scrape, parameters), pool_args)
         output = [x for sublist in output for x in sublist]
 
         # Create dataframe from list of jobs
@@ -182,7 +192,7 @@ class scrape:
         return df_output_frame
 
     # For outputting to excel locally
-    def output_excel(df):
+    def output_excel(self, df):
         with pd.ExcelWriter(
             "/downloadable/Excel Output.xlsx", options={"strings_to_urls": False}
         ) as writer:

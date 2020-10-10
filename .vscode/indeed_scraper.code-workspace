@@ -1,0 +1,22 @@
+{
+	"folders": [
+		{
+			"path": "/Users/Tobias/workshop/sketchbox/Indeed-Job-Scraper"
+		}
+	],
+	"settings": {
+		"python.pythonPath": "/Users/Tobias/.vega/Indeed-Job-Scraper-38ZF4-cH/bin/python",
+		"window.zoomLevel": -2,
+		"python.linting.pylintEnabled": true,
+		"python.linting.pylintPath": "/Users/Tobias/.vega/Indeed-Job-Scraper-38ZF4-cH/bin/pylint",
+		"python.linting.pylintArgs": [
+			"--load-plugins",
+			"pylint_flask",
+		],
+		"python.formatting.provider": "black",
+		"python.formatting.blackPath": "/Users/Tobias/.vega/Indeed-Job-Scraper-38ZF4-cH/bin/black",
+		"python.formatting.blackArgs": [
+			"--line-length=88",
+		],
+	}
+}
